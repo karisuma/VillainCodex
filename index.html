@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Villain Codex</title>
+
+  <!-- Favicon & app icons -->
+  <link rel="icon" type="image/svg+xml" href="./fav/favicon.svg">
+  <link rel="alternate icon" type="image/png" sizes="32x32" href="./fav/favicon-32x32.png">
+  <link rel="alternate icon" type="image/png" sizes="16x16" href="./fav/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./fav/villain-codex-favicon-180.png">
+  <link rel="manifest" href="./fav/site.webmanifest">
+  <link rel="mask-icon" href="./fav/safari-pinned-tab.svg" color="#b71c1c">
+  <meta name="theme-color" content="#111111">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/page-flip.css" />
+  <style>
+    :root{ --bg:#f5f0e6; --ink:#2a2a2a; --panel:#fff; --shadow:rgba(0,0,0,.08); }
+
+    html,body{ height:100%; }
+    body{ margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,"Noto Sans KR",sans-serif; overflow:hidden; }
+
+    /* ---- 레이아웃 ---- */
+    .app{
+      display:grid;
+      grid-template-rows: 56px 1fr 88px;      /* 하단 Species 바 높이 */
+      grid-template-columns: 1fr 220px;       /* 오른쪽 썸네일 사이드바 폭 */
+      grid-template-areas:
+        "header header"
+        "book   thumbs"      /* 중앙 book, 오른쪽 썸네일 */
+        "species thumbs";    /* 하단 Species, 오른쪽 썸네일 그대로 유지 */
+      height:100%;
+    }
+
+    /* ---- 헤더 ---- */
+    header{
+      grid-area:header;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 20px; gap:8px; /* 20px로 통일 */
+      background:var(--panel);
+      border-bottom:1px solid #e7e1d6;
+    }
+    #connectBtn{ height:32px; padding:0 12px; border-radius:8px; border:1px solid #ddd; background:#111; color:#fff; cursor:pointer; }
+    #addr{ opacity:.7; font-size:12px; }
+    
+    /* ---- 네비게이션 버튼 ---- */
+    .nav-btn{
+      height:32px; padding:0 16px; border-radius:8px; border:1px solid #ddd; 
+      background:#f8f8f8; color:#333; cursor:pointer; font-size:14px; font-weight:500;
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover{ background:#f0f0f0; }
+    .nav-btn.active{ background:#4ade80; color:#fff; border-color:#4ade80; }
+
+    /* ---- 중앙 책 ---- */
+    .book-wrap{
+      grid-area:book;
+      position:relative; 
+      padding:20px; /* 고정 패딩 20px */
+      overflow:hidden;
+    }
+    .book-wrap.hidden{ display:none; }
+    #book{ 
+      width:100%; 
+      height:100%; 
+      /* max-width 제거하여 전체 영역 사용 */
+    }
+    
+    /* PageFlip 생성 요소들 크기 제한 */
+    .stf__parent {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      display: block !important;
+      position: relative !important;
+      overflow: hidden !important;
+    }
+    
+    .stf__block {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      position: relative !important;
+      top: 0 !important;
+      left: 0 !important;
+      overflow: hidden !important;
+    }
+    
+    /* PageFlip 래퍼들 크기 제한 */
+    .stf__wrapper {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+    }
+    
+    /* PageFlip 스테이지 크기 제한 */
+    .stf__stage {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+    }
+    
+    /* Landscape 모드에서 크기 강제 조정 */
+    .stf__wrapper.--landscape {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    /* PageFlip 단일 페이지 모드 강제 비활성화 */
+    .stf__wrapper.--simple {
+      display: flex !important;
+      flex-direction: row !important;
+    }
+    
+    /* PageFlip을 항상 landscape 모드로 강제 */
+    .stf__wrapper {
+      display: flex !important;
+      flex-direction: row !important;
+    }
+    
+    /* 모든 PageFlip 아이템들이 동시에 보이도록 강제 */
+    .stf__item {
+      width: 50% !important;
+      height: 100% !important;
+      position: relative !important;
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      float: left !important;
+      vertical-align: top !important;
+    }
+    
+    /* 단일 페이지 모드 스타일도 두 페이지 모드로 강제 변경 */
+    .stf__item.--simple {
+      width: 50% !important;
+      position: relative !important;
+      display: inline-block !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      float: left !important;
+    }
+    
+    /* 모든 상태의 페이지가 보이도록 강제 */
+    .stf__item.--left, 
+    .stf__item.--right,
+    .stf__item.--soft {
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: inline-block !important;
+      width: 50% !important;
+      position: relative !important;
+      float: left !important;
+    }
+    
+    .page{ 
+      background:#fff; 
+      border:1px solid #e8e2d7; 
+      box-shadow:0 6px 30px var(--shadow); 
+      padding:20px;
+      box-sizing: border-box;
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 100% !important;
+    }
+    .grid{ 
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* 아이템 간 간격 */
+      height: 100%;
+      min-height: 100%;
+      padding: 0; /* 추가 패딩 제거 */
+    }
+
+    /* ---- 카드 ---- */
+    .entry{ 
+      display: grid; 
+      grid-template-columns: 160px 1fr; /* 이미지 크기 30% 추가 확대 (10px 단위) */
+      gap: 10px; 
+      border: 1px solid #eee; 
+      border-radius: 8px; 
+      padding: 10px; 
+      background: #fff;
+      min-height: 160px; /* 카드 최소 높이 30% 추가 확대 */
+      align-items: center; /* 세로 중앙 정렬 */
+    }
+    .imgbox img{ 
+      width: 160px; 
+      height: 160px; 
+      object-fit: cover; 
+      border-radius: 6px; 
+      background: #d9d3c6; 
+    }
+    /* 로그인하지 않은 경우 - 모든 아이템 흑백 */
+    .entry.not-logged-in .imgbox img{ 
+      filter: grayscale(100%) blur(1px); 
+      opacity: 0.6; 
+    }
+    .entry.not-logged-in {
+      opacity: 0.8;
+    }
+    
+    /* 로그인했지만 소유하지 않은 경우 - 흑백 + 흐림 */
+    .entry.unowned .imgbox img{ 
+      filter: grayscale(100%) blur(1px); 
+      opacity: 0.55; 
+    }
+    .entry.unowned {
+      opacity: 0.7;
+    }
+    
+    /* 소유한 경우 - 정상 컬러 */
+    .entry.owned .imgbox img{ 
+      filter: none; 
+      opacity: 1; 
+    }
+    .entry.owned {
+      opacity: 1;
+      border-color: #4ade80; /* 녹색 테두리로 소유 표시 */
+      box-shadow: 0 0 0 1px #4ade80;
+    }
+    
+    /* 로그인 힌트 스타일 */
+    .login-hint {
+      font-size: 11px;
+      color: #666;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    /* ---- 오른쪽 썸네일(세로) ---- */
+    .thumbs{
+      grid-area:thumbs;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      background:var(--panel);
+      border-left:1px solid #e7e1d6;
+      padding:20px; /* 20px로 통일 */
+      overflow:auto;            /* 세로 스크롤 */
+    }
+    .thumb{
+      width:100%;
+      height:64px;
+      border:1px solid #e2dbcf;
+      border-radius:8px;
+      background:#f0ece4;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; user-select:none;
+    }
+
+    /* ---- 하단 Species(가로) ---- */
+    .species-bar{
+      grid-area:species;
+      background:var(--panel);
+      border-top:1px solid #e7e1d6;
+      display:flex; flex-direction:column;
+      padding:8px 20px; /* 20px로 통일 */
+    }
+    .species-bar h3{ margin:0 0 6px; font-size:13px; font-weight:700; }
+    .species-list{
+      display:flex; gap:8px;
+      overflow:auto hidden; white-space:nowrap;
+      padding-bottom:4px;
+    }
+    .species-item{
+      display:inline-flex; align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border:1px solid #e2dbcf;
+      border-radius:999px;
+      background:#fff;
+      cursor:pointer;
+    }
+    .species-item:hover{ background:#f6f3ed; }
+
+    /* ---- 페이지 네비 화살표 ---- */
+    .nav-arrow{
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:44px; height:44px;
+      border-radius:22px;
+      background:var(--panel); border:1px solid #e7e1d6;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; box-shadow:0 4px 16px var(--shadow);
+    }
+    .nav-prev{ left:16px; } .nav-next{ right:16px; }
+    .nav-arrow svg{ width:18px; height:18px; }
+
+    /* ---- 리더보드 ---- */
+    .leaderboard-wrap{
+      grid-area:book;
+      padding:20px;
+      overflow:auto;
+      display:none;
+    }
+    .leaderboard-wrap.active{ display:block; }
+    
+    .leaderboard-header{
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:20px; padding-bottom:16px; border-bottom:2px solid #e7e1d6;
+    }
+    .leaderboard-title{
+      font-size:24px; font-weight:700; color:#2a2a2a;
+      display:flex; align-items:center; gap:12px;
+    }
+    .leaderboard-subtitle{
+      font-size:14px; color:#666; margin-top:4px;
+    }
+    .last-updated{
+      font-size:12px; color:#999;
+    }
+    
+    .search-bar{
+      margin-bottom:20px; display:flex; gap:12px; align-items:center;
+    }
+    .search-input{
+      flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:8px;
+      font-size:14px; background:#fff;
+    }
+    .refresh-btn{
+      padding:8px 16px; border:1px solid #ddd; border-radius:8px;
+      background:#f8f8f8; color:#333; cursor:pointer; font-size:14px;
+    }
+    .refresh-btn:hover{ background:#f0f0f0; }
+    .refresh-btn.loading{ opacity:0.6; pointer-events:none; }
+    
+    .tier-stats{
+      display:grid; grid-template-columns:repeat(5, 1fr);
+      gap:12px; margin-bottom:24px; width:70%; margin-left:auto; margin-right:auto;
+    }
+    .tier-stat{
+      background:#fff; border:1px solid #e7e1d6; border-radius:12px;
+      padding:16px; text-align:center;
+    }
+    .tier-name{ font-size:12px; color:#666; margin-bottom:4px; }
+    .tier-count{ font-size:20px; font-weight:700; color:#2a2a2a; }
+    .tier-reward{ font-size:11px; color:#4ade80; margin-top:4px; }
+    
+    .leaderboard-table{
+      background:#fff; border:1px solid #e7e1d6; border-radius:12px; overflow:hidden;
+    }
+    .table-header{
+      background:#f8f8f8; display:grid;
+      grid-template-columns: 60px 1fr 120px 50px 50px 60px 60px 60px;
+      gap:8px; padding:12px 16px; font-weight:600; font-size:13px; color:#666;
+      border-bottom:1px solid #e7e1d6; text-align:center;
+    }
+    .table-header > div:nth-child(1), .table-header > div:nth-child(2), .table-header > div:nth-child(3) {
+      text-align:left;
+    }
+    .table-row{
+      display:grid; grid-template-columns: 60px 1fr 120px 50px 50px 60px 60px 60px;
+      gap:8px; padding:12px 16px; border-bottom:1px solid #f0f0f0;
+      align-items:center; transition: background-color 0.2s ease;
+    }
+    .qualification-check{
+      text-align:center; font-size:18px;
+    }
+    .qualification-tag{
+      display: inline-block;
+      min-width: 24px;
+      height: 20px;
+      border-radius: 6px;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      line-height: 20px;
+      text-align: center;
+      margin: 0 auto;
+      padding: 0 4px;
+    }
+    .tag-1 { background-color: #f59e0b; }
+    .tag-3 { background-color: #8b5cf6; }
+    .tag-10 { background-color: #3b82f6; }
+    .tag-30 { background-color: #10b981; }
+    .tag-100 { background-color: #ef4444; }
+    .tag-500k { background-color: #6b7280; }
+    
+    .excluded-section {
+      margin-top: 20px;
+      border-top: 2px solid #e7e1d6;
+      padding-top: 16px;
+    }
+    .excluded-header h3 {
+      color: #dc2626;
+      font-size: 16px;
+      margin: 0 0 12px 0;
+      text-align: center;
+    }
+    .excluded-row {
+      background-color: #fef2f2 !important;
+      border-left: 4px solid #dc2626;
+    }
+    .exclude-tag {
+      background-color: #dc2626;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-left: 8px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .qualification-check.qualified{ color:#22c55e; }
+    .qualification-check.not-qualified{ color:#e5e7eb; }
+    .table-row:hover{ background:#f9f9f9; }
+    .table-row:last-child{ border-bottom:none; }
+    .table-row.my-wallet{ 
+      background:#e6f7ff !important; 
+      border-left:4px solid #1890ff;
+      font-weight:500;
+    }
+    .table-row.my-wallet:hover{ background:#d6f0ff !important; }
+    
+    .rank{ font-weight:700; color:#666; }
+    .rank.top3{ color:#ffd700; }
+    .rank.top10{ color:#c0c0c0; }
+    .rank.top30{ color:#cd7f32; }
+    
+    .address{ 
+      font-family:monospace; font-size:12px; color:#333;
+      text-overflow:ellipsis; overflow:hidden; white-space:nowrap;
+    }
+    .balance{ font-weight:600; color:#2a2a2a; }
+    .tier{ 
+      font-size:12px; padding:4px 8px; border-radius:12px; text-align:center;
+      white-space:nowrap; font-weight:500;
+    }
+    .tier.top3{ background:#ffd700; color:#333; }
+    .tier.top10{ background:#e6e6e6; color:#333; }
+    .tier.top30{ background:#d4b896; color:#333; }
+    .tier.top100{ background:#a8d5a8; color:#333; }
+    .tier.common{ background:#e8f5e8; color:#2d5a2d; }
+    .tier.none{ background:#f0f0f0; color:#666; }
+    
+    .reward{ font-size:11px; color:#666; }
+    
+    .pagination{
+      display:flex; justify-content:center; align-items:center; gap:12px; margin-top:20px;
+    }
+    .page-btn{
+      padding:8px 12px; border:1px solid #ddd; border-radius:8px;
+      background:#fff; color:#333; cursor:pointer; font-size:14px;
+    }
+    .page-btn:hover{ background:#f8f8f8; }
+    .page-btn.active{ background:#4ade80; color:#fff; border-color:#4ade80; }
+    .page-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+    /* ---- 모바일 ---- */
+    @media (max-width:960px){
+      .app{
+        grid-template-columns: 1fr; /* 썸네일 사이드바 제거 */
+        grid-template-areas:
+          "header"
+          "book"
+          "species";
+      }
+      .book-wrap{
+        padding:15px; /* 모바일에서는 살짝 줄임 */
+      }
+      header{
+        padding:0 15px; /* 모바일 패딩 */
+      }
+      .species-bar{
+        padding:8px 15px; /* 모바일 패딩 */
+      }
+      .entry{ grid-template-columns:200px 1fr; }
+      .imgbox img{ width:200px; height:200px; }
+      .nav-arrow{ display:none; }
+      .thumbs{ display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Villain Codex <span style="font-weight:400;color:#666;font-size:0.8em;">: Prisoners of Old Paintings</span></h1>
+      <nav style="display:flex;align-items:center;gap:16px;">
+        <button id="viewCodex" class="nav-btn active">Codex</button>
+        <button id="viewLeaderboard" class="nav-btn">$PRISON Leaderboard</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button id="connectBtn">Connect Wallet</button>
+          <span id="addr"></span>
+        </div>
+      </nav>
+    </header>
+
+    <!-- 중앙 책 -->
+    <div class="book-wrap active">
+      <div id="book"></div>
+      <button class="nav-arrow nav-prev" aria-label="이전 페이지">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="nav-arrow nav-next" aria-label="다음 페이지">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+
+    <!-- 리더보드 -->
+    <div class="leaderboard-wrap">
+      <div class="leaderboard-header">
+        <div>
+          <div class="leaderboard-title">
+            💰 $PRISON Token Leaderboard
+          </div>
+          <div class="leaderboard-subtitle">
+            Monthly NFT Airdrop Winners • Updates every 2 hours • Snapshot dates are undisclosed
+          </div>
+        </div>
+        <div class="last-updated" id="lastUpdated">
+          Last updated: Loading...
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by address or tier...">
+        <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
+      </div>
+
+      <div class="tier-stats" id="tierStats">
+        <!-- 티어별 통계가 여기에 표시됩니다 -->
+      </div>
+
+      <div class="leaderboard-table">
+        <div class="table-header">
+          <div>Rank</div>
+          <div>Address</div>
+          <div>Balance<br>($PRISON)</div>
+          <div>Top3</div>
+          <div>Top10</div>
+          <div>Top30</div>
+          <div>Top100</div>
+          <div>500K+</div>
+        </div>
+        <div id="holdersList">
+          <!-- 홀더 리스트가 여기에 표시됩니다 -->
+        </div>
+      </div>
+
+      <div class="pagination" id="pagination">
+        <!-- 페이지네이션이 여기에 표시됩니다 -->
+      </div>
+    </div>
+
+    <!-- 하단 Species -->
+    <div class="species-bar">
+      <h3>Species</h3>
+      <div class="species-list" id="speciesList"></div>
+    </div>
+
+    <!-- 오른쪽 썸네일 -->
+    <div class="thumbs"><div id="thumbs"></div></div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

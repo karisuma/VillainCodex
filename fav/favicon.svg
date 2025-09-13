@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .seal { fill: #b71c1c; }
+      .symbol { fill: #ffffff; }
+    </style>
+  </defs>
+  <circle class="seal" cx="256" cy="256" r="235"/>
+  <!-- Outer rounded square -->
+  <rect class="symbol" x="144" y="144" width="224" height="224" rx="30" ry="30"/>
+  <!-- Inner cut to create border -->
+  <rect class="seal" x="200" y="200" width="112" height="112" rx="10" ry="10"/>
+  <!-- Vertical bar -->
+  <rect class="symbol" x="236" y="216" width="40" height="80"/>
+</svg>
