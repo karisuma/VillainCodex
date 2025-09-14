@@ -1,6 +1,5 @@
 import { PageFlip } from "https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.module.js";
-
-const API = 'http://121.125.73.16:8787';
+import { API, MODE_NAME, IS_DEVELOPMENT } from './config.js';
 const DEFAULT_ITEM_IMG = 'img/item.png';
 const DEFAULT_CATEGORY_IMG = 'img/category.png'; // 필요 시 species별 맵핑에 활용
 
