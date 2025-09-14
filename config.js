@@ -2,7 +2,7 @@
 // 개발/배포 모드를 쉽게 전환하기 위한 설정 파일
 
 // 현재 환경 모드 (DEV 또는 PRODUCT)
-const MODE = 'PRODUCT'; // <- 여기만 변경하면 됨!
+const MODE = 'DEV'; // <- 여기만 변경하면 됨!
 
 const CONFIG = {
   DEV: {
@@ -10,8 +10,8 @@ const CONFIG = {
     MODE_NAME: '개발 모드 (로컬)'
   },
   PRODUCT: {
-    API_URL: 'http://121.125.73.16:8787',
-    MODE_NAME: '배포 모드 (HTTP 서버 - 임시)'
+    API_URL: 'https://121.125.73.16:8787',
+    MODE_NAME: '배포 모드 (HTTPS 서버)'
   }
 };
 
