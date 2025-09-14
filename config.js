@@ -10,8 +10,8 @@ const CONFIG = {
     MODE_NAME: '개발 모드 (로컬)'
   },
   PRODUCT: {
-    API_URL: 'http://121.125.73.16:8787',
-    MODE_NAME: '배포 모드 (서버)'
+    API_URL: 'https://121.125.73.16:8787',
+    MODE_NAME: '배포 모드 (HTTPS 서버)'
   }
 };
 
