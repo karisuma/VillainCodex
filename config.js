@@ -2,7 +2,7 @@
 // 개발/배포 모드를 쉽게 전환하기 위한 설정 파일
 
 // 현재 환경 모드 (DEV 또는 PRODUCT)
-const MODE = 'DEV'; // <- 여기만 변경하면 됨!
+const MODE = 'PRODUCT'; // <- 여기만 변경하면 됨!
 
 const CONFIG = {
   DEV: {
