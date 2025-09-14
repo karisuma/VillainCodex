@@ -10,7 +10,7 @@ const CONFIG = {
     MODE_NAME: '개발 모드 (로컬)'
   },
   PRODUCT: {
-    API_URL: 'https://thingproxy.freeboard.io/fetch/http://121.125.73.16:8787',
+    API_URL: 'http://121.125.73.16:8787',
     MODE_NAME: '배포 모드 (서버)'
   }
 };
